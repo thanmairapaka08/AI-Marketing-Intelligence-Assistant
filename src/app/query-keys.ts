@@ -1,0 +1,15 @@
+export const queryKeys = {
+  me: ["auth", "me"] as const,
+  dashboard: ["dashboard", "summary"] as const,
+  websites: ["websites"] as const,
+  audits: (params: Record<string, unknown> = {}) => ["audits", "list", params] as const,
+  audit: (id: string) => ["audits", id] as const,
+  auditStatus: (id: string) => ["audits", id, "status"] as const,
+  auditPages: (id: string) => ["audits", id, "pages"] as const,
+  auditMetrics: (id: string) => ["audits", id, "metrics"] as const,
+  auditRecommendations: (id: string) => ["audits", id, "recommendations"] as const,
+  comparison: (id: string) => ["competitors", id] as const,
+  health: ["backend", "health"] as const,
+  ready: ["backend", "ready"] as const,
+  openapi: ["backend", "openapi"] as const,
+};
