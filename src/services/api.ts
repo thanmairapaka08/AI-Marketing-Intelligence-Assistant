@@ -93,7 +93,7 @@ export function toList<T>(data: unknown): { items: T[]; total: number | null } {
     const record = data as Record<string, unknown>;
     for (const key of ["items", "results", "data", "audits", "websites", "recommendations", "pages"]) {
       if (Array.isArray(record[key])) {
-        const total = typeof record.total === "number" ? record.total : (record[key] as T[]).length;
+        const total = typeof record["total"] === "number" ? record["total"] : (record[key] as T[]).length;
         return { items: record[key] as T[], total };
       }
     }

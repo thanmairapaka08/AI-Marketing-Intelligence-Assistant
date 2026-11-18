@@ -99,7 +99,7 @@ export const METRIC_BY_KEY = Object.fromEntries(METRICS.map((m) => [m.key, m])) 
 export function getMetric(metrics: AuditMetrics | null | undefined, key: MetricKey): MetricResult | null {
   if (!metrics) return null;
   const record = metrics as Record<string, unknown>;
-  const container = (record.metrics && typeof record.metrics === "object" ? record.metrics : record) as Record<string, unknown>;
+  const container = (record["metrics"] && typeof record["metrics"] === "object" ? record["metrics"] : record) as Record<string, unknown>;
   const def = METRIC_BY_KEY[key];
   for (const name of [key, ...def.aliases]) {
     const value = container[name];

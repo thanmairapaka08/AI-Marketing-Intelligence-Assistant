@@ -5,7 +5,7 @@ export type ReportFormat = "pdf" | "csv" | "json";
 function filenameFrom(disposition: string | undefined, fallback: string) {
   if (!disposition) return fallback;
   const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition);
-  return match ? decodeURIComponent(match[1]) : fallback;
+  return match?.[1] ? decodeURIComponent(match[1]) : fallback;
 }
 
 export const reportsService = {

@@ -32,11 +32,11 @@ export class ApiError extends Error {
 
 type FastApiValidationItem = { loc?: (string | number)[]; msg?: string };
 
-function readDetail(data: unknown): { message?: string; fieldErrors: Record<string, string> } {
+function readDetail(data: unknown): { message?: string | undefined; fieldErrors: Record<string, string> } {
   const fieldErrors: Record<string, string> = {};
   if (!data || typeof data !== "object") return { fieldErrors };
   const record = data as Record<string, unknown>;
-  const detail = record.detail ?? record.message ?? record.error;
+  const detail = record["detail"] ?? record["message"] ?? record["error"];
 
   if (typeof detail === "string") return { message: detail, fieldErrors };
 

@@ -130,7 +130,7 @@ export function useAuth() {
 
 export function displayName(user: User | null): string {
   if (!user) return "Guest";
-  return user.full_name || user.name || user.email.split("@")[0];
+  return user.full_name || user.name || user.email.split("@")[0] ?? user.email;
 }
 
 export function initials(user: User | null): string {
