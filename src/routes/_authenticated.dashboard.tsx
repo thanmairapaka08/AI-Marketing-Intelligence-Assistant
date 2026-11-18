@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PageInProgress } from "@/components/common/page-in-progress";
+import { DashboardPage } from "@/features/dashboard/dashboard-page";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -11,5 +11,5 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       { property: "og:description", content: "Your websites, audits and SEO performance at a glance." },
     ],
   }),
-  component: () => <PageInProgress title="Dashboard" description="Your websites, audits and SEO performance at a glance." />,
+  component: DashboardPage,
 });
