@@ -47,4 +47,4 @@ backend/.pytest_cache/
 coverage
 
 # bun lockfile (optional - can be committed if preferred)
-# bun.lock
+# bun.lockbackend/app/data/*.db

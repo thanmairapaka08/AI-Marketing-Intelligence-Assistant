@@ -1,16 +1,29 @@
 from __future__ import annotations
 
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import ai, audits, auth, competitors, dashboard, websites
+from app.services.storage import init_db
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: initialize database
+    init_db()
+    yield
+    # Shutdown: cleanup if needed
+    pass
+
 
 app = FastAPI(
     title="AI Marketing Intelligence Assistant API",
     description="Backend API for website SEO audits and AI recommendations.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 # Development origins the frontend may be served from. FRONTEND_URL from the

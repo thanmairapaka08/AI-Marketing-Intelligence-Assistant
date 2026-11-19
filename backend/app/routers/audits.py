@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 import uuid
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response, status
 from fastapi.responses import Response
 
 from app.schemas import (
@@ -22,19 +22,31 @@ from app.services.report_generator import (
     generate_pdf_report,
 )
 from app.services.seo_analyzer import SSRFValidationError, analyze_url
-from app.services.storage import store
+from app.services.storage import get_store
 
 router = APIRouter(prefix="/audits", tags=["Audits"])
 
 
+async def get_current_user_id(access_token: str | None = Cookie(None)) -> str:
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not authenticated.")
+    store = get_store()
+    user = store.get_user_by_token(access_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired session.")
+    return user.id
+
+
 @router.post("", response_model=CreateAuditResponse, status_code=status.HTTP_201_CREATED)
-async def create_audit(payload: AuditCreate):
+async def create_audit(
+    payload: AuditCreate,
+    user_id: str = Depends(get_current_user_id),
+):
     if not payload.url or not payload.url.strip():
         raise HTTPException(status_code=400, detail="Target URL is required.")
 
     target_url = payload.url.strip()
     try:
-        # Run real SEO crawler and analyzer
         analysis = await analyze_url(target_url)
     except SSRFValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -63,7 +75,8 @@ async def create_audit(payload: AuditCreate):
         "crawl_warnings": analysis["crawl_warnings"],
     }
 
-    store.save_audit(audit_record)
+    store = get_store()
+    store.save_audit(user_id, audit_record)
 
     return CreateAuditResponse(audit_id=audit_id, status="completed")
 
@@ -71,22 +84,32 @@ async def create_audit(payload: AuditCreate):
 @router.get("", response_model=List[AuditSummary])
 async def list_audits(
     website_id: Optional[str] = Query(None),
-    status: Optional[str] = Query(None),
+    audit_status: Optional[str] = Query(None),
+    user_id: str = Depends(get_current_user_id),
 ):
-    return store.get_audits(website_id=website_id, status=status)
+    store = get_store()
+    return store.get_audits(user_id, website_id=website_id, status=audit_status)
 
 
 @router.get("/{audit_id}", response_model=AuditDetail)
-async def get_audit(audit_id: str):
-    audit = store.get_audit(audit_id)
+async def get_audit(
+    audit_id: str,
+    user_id: str = Depends(get_current_user_id),
+):
+    store = get_store()
+    audit = store.get_audit(audit_id, user_id)
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found.")
     return audit
 
 
 @router.get("/{audit_id}/status", response_model=AuditStatusResponse)
-async def get_audit_status(audit_id: str):
-    audit = store.get_audit(audit_id)
+async def get_audit_status(
+    audit_id: str,
+    user_id: str = Depends(get_current_user_id),
+):
+    store = get_store()
+    audit = store.get_audit(audit_id, user_id)
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found.")
     return AuditStatusResponse(
@@ -101,32 +124,48 @@ async def get_audit_status(audit_id: str):
 
 
 @router.get("/{audit_id}/pages", response_model=List[PageResult])
-async def get_audit_pages(audit_id: str):
-    audit = store.get_audit(audit_id)
+async def get_audit_pages(
+    audit_id: str,
+    user_id: str = Depends(get_current_user_id),
+):
+    store = get_store()
+    audit = store.get_audit(audit_id, user_id)
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found.")
     return audit.get("pages", [])
 
 
 @router.get("/{audit_id}/metrics", response_model=AuditMetrics)
-async def get_audit_metrics(audit_id: str):
-    audit = store.get_audit(audit_id)
+async def get_audit_metrics(
+    audit_id: str,
+    user_id: str = Depends(get_current_user_id),
+):
+    store = get_store()
+    audit = store.get_audit(audit_id, user_id)
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found.")
     return audit.get("metrics", {"overall_score": 0})
 
 
 @router.get("/{audit_id}/recommendations", response_model=List[Recommendation])
-async def get_audit_recommendations(audit_id: str):
-    audit = store.get_audit(audit_id)
+async def get_audit_recommendations(
+    audit_id: str,
+    user_id: str = Depends(get_current_user_id),
+):
+    store = get_store()
+    audit = store.get_audit(audit_id, user_id)
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found.")
     return audit.get("recommendations", [])
 
 
 @router.delete("/{audit_id}")
-async def delete_audit(audit_id: str):
-    success = store.delete_audit(audit_id)
+async def delete_audit(
+    audit_id: str,
+    user_id: str = Depends(get_current_user_id),
+):
+    store = get_store()
+    success = store.delete_audit(audit_id, user_id)
     if not success:
         raise HTTPException(status_code=404, detail="Audit not found.")
     return {"status": "deleted", "id": audit_id}
@@ -134,8 +173,12 @@ async def delete_audit(audit_id: str):
 
 # --- Report Exports ---
 @router.get("/{audit_id}/export/pdf")
-async def export_pdf(audit_id: str):
-    audit = store.get_audit(audit_id)
+async def export_pdf(
+    audit_id: str,
+    user_id: str = Depends(get_current_user_id),
+):
+    store = get_store()
+    audit = store.get_audit(audit_id, user_id)
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found.")
     pdf_bytes = generate_pdf_report(audit)
@@ -148,8 +191,12 @@ async def export_pdf(audit_id: str):
 
 
 @router.get("/{audit_id}/export/csv")
-async def export_csv(audit_id: str):
-    audit = store.get_audit(audit_id)
+async def export_csv(
+    audit_id: str,
+    user_id: str = Depends(get_current_user_id),
+):
+    store = get_store()
+    audit = store.get_audit(audit_id, user_id)
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found.")
     csv_str = generate_csv_report(audit)
@@ -162,8 +209,12 @@ async def export_csv(audit_id: str):
 
 
 @router.get("/{audit_id}/export/json")
-async def export_json(audit_id: str):
-    audit = store.get_audit(audit_id)
+async def export_json(
+    audit_id: str,
+    user_id: str = Depends(get_current_user_id),
+):
+    store = get_store()
+    audit = store.get_audit(audit_id, user_id)
     if not audit:
         raise HTTPException(status_code=404, detail="Audit not found.")
     json_str = generate_json_report(audit)

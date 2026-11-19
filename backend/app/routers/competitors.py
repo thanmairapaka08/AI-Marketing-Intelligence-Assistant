@@ -1,19 +1,30 @@
 from __future__ import annotations
 
 import uuid
-from typing import List
-from fastapi import APIRouter, HTTPException
+from typing import List, Optional
+from fastapi import APIRouter, Cookie, Depends, HTTPException
 
 from app.schemas import CompareInput, ComparisonResult, ComparisonSite
 from app.services.seo_analyzer import analyze_url
-from app.services.storage import store
+from app.services.storage import get_store
 
 router = APIRouter(prefix="/competitors", tags=["Competitors"])
 
 
+async def get_current_user_id(access_token: str | None = Cookie(None)) -> str:
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not authenticated.")
+    store = get_store()
+    user = store.get_user_by_token(access_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired session.")
+    return user.id
+
+
 @router.post("/compare", response_model=ComparisonResult)
-async def compare_competitors(payload: CompareInput):
-    primary_site = store.get_website(str(payload.website_id))
+async def compare_competitors(payload: CompareInput, user_id: str = Depends(get_current_user_id)):
+    store = get_store()
+    primary_site = store.get_website(str(payload.website_id), user_id)
     primary_url = primary_site["url"] if primary_site else "https://example.com"
 
     comparison_id = f"comp_{uuid.uuid4().hex[:10]}"
@@ -88,13 +99,14 @@ async def compare_competitors(payload: CompareInput):
         status="completed",
         sites=sites,
     )
-    store.comparisons[comparison_id] = result.model_dump()
+    store.save_comparison(user_id, result.model_dump())
     return result
 
 
 @router.get("/comparisons/{comparison_id}", response_model=ComparisonResult)
-async def get_comparison(comparison_id: str):
-    res = store.comparisons.get(comparison_id)
+async def get_comparison(comparison_id: str, user_id: str = Depends(get_current_user_id)):
+    store = get_store()
+    res = store.get_comparison(comparison_id, user_id)
     if not res:
         raise HTTPException(status_code=404, detail="Comparison not found.")
     return res
