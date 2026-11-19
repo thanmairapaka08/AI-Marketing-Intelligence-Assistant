@@ -1,53 +1,53 @@
-# Decisions — AI Marketing Intelligence Assistant
+# Technical Decisions
 
-## 1. Architectural Decisions
+## 1. Frontend Framework
+**Decision:** React with TypeScript and Vite.
 
-**Single Repository:** The React frontend and FastAPI backend are maintained in one repository, with backend code inside `backend/`.
+**Reason:** Supports reusable UI components, type safety, and fast development.
 
-**Reason:** Simplifies evaluation, setup, testing, and submission.
+## 2. Backend Framework
+**Decision:** FastAPI with Python.
 
-**Frontend–Backend Communication:** REST APIs connect the React frontend to FastAPI. CORS origins are configurable using `FRONTEND_URL`.
+**Reason:** Provides REST API development, request validation, and integration with website analysis logic.
 
-**Reason:** Supports local development and different deployment environments.
+## 3. Database
+**Decision:** SQLite.
 
-**Authentication:** User information is obtained from the authenticated session rather than hardcoded values.
+**Reason:** Lightweight database suitable for local development and assessment demonstrations.
 
-**Reason:** Ensures each user sees their own account information.
+## 4. SEO Analysis
+**Decision:** Evaluate five SEO categories.
 
-**Data Storage:** The initial backend used an in-memory store for rapid development. Persistent SQLite storage was subsequently prioritized.
+**Categories:**
+- Title and Meta — 25%
+- Broken Links — 25%
+- Image Alt Text — 15%
+- Headings — 20%
+- Canonical Tags — 15%
 
-**Reason:** In-memory storage simplifies prototyping, while persistence is needed to retain users and audit history. The final storage implementation must be verified.
+**Reason:** These checks provide a measurable overview of common on-page SEO issues.
 
-## 2. Assumptions and Reasons
+## 5. Frontend and Backend Integration
+**Decision:** Use REST API communication.
 
-1. **Public websites:** Audits target publicly accessible URLs because private websites require additional authentication.
-2. **SEO metrics:** Titles, descriptions, headings, image alt text, and internal links provide measurable indicators of basic SEO quality.
-3. **SEO scoring:** A deterministic scoring system is suitable because the assignment does not provide specific metric weights.
-4. **AI recommendations:** Rule-based suggestions are an acceptable fallback when an external AI service is unavailable.
-5. **User-specific data:** Audits and reports should be associated with the authenticated user to prevent mixing information between accounts.
+**Reason:** Allows independent frontend and backend development.
 
-## 3. Unclear Requirements and Resolutions
+## 6. Guest Audit Access
+**Decision:** Allow users to create and view public audits without registration.
 
-| Unclear requirement | Resolution |
-|---|---|
-| Maximum crawling depth | Prioritize single-page analysis; extend crawling if required |
-| SEO scoring weights | Use documented, consistent scoring rules |
-| Required AI model | Use rule-based recommendations when no model is configured |
-| Database technology | Prefer a simple local database for development |
-| Report format | Support available export formats such as PDF, CSV, or JSON |
+**Reason:** Simplifies the demonstration and makes website analysis immediately accessible.
 
-## 4. Three Decisions to Revisit
+**Consideration:** Public endpoints require access controls, rate limiting, and SSRF protection before production deployment.
 
-1. **Website Crawling:** Expand from single-page analysis to configurable multi-page crawling with broken-link detection.
-2. **Database Architecture:** Evaluate PostgreSQL for production scalability and concurrent users.
-3. **AI Recommendations:** Integrate Gemini or another LLM for more contextual SEO recommendations.
+## 7. Results Dashboard
+**Decision:** Display scores using visual indicators and metric cards.
 
-## 5. Engineering Priorities
+**Reason:** Makes SEO performance easy to understand.
 
-The project prioritizes functional integration, reliable SEO analysis, secure authentication, automated testing, and accurate reporting.
+## 8. Development Environment
+**Decision:** Use local development servers.
 
-The implementation avoids fabricated audit results and unnecessary complexity.
+- Frontend: Port 5173
+- Backend: Port 8000
 
-## Conclusion
-
-These decisions balance development time, application functionality, and maintainability while identifying improvements for future development.
+**Reason:** Supports rapid development, testing, and debugging.
