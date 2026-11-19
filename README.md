@@ -54,3 +54,5 @@ Core SEO auditing and report display are functional. Additional features, includ
 - Advanced SEO analytics
 - Downloadable reports
 - Deployment to cloud infrastructure
+Demo video:https://drive.google.com/file/d/13fgBg94aQejyv9rBoLDTgwMgvfSO99Nb/view?usp=sharing
+
