@@ -1,73 +1,45 @@
-# AGENTS.md — AI Marketing Intelligence Assistant
+# AI Agent Development Guidelines
 
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting published Git history. Do not force-push, rebase, amend, or squash commits that have already been pushed.
->
-> Commits pushed to the connected branch sync back to Lovable. Keep the branch in a working state.
+## Project
+AI Marketing Intelligence Assistant
 
-## What Lovable Manages
-
-- **Database:** Do not manually modify `supabase/migrations/` or `drizzle/`. Make schema changes through Lovable.
-- **Generated files:** Do not edit automatically generated files.
-- **AI gateway:** Use Lovable's gateway for Lovable-managed model calls. Never expose `LOVABLE_API_KEY` in frontend code.
-- **Connectors:** Use Lovable's native connectors when available. Manage connector credentials securely.
-- **Secrets:** Never commit API keys, passwords, or secret values.
-<!-- LOVABLE:END -->
-
-## Project Overview
-
-AI Marketing Intelligence Assistant is a full-stack application for analyzing website SEO performance, identifying issues, calculating scores, and generating recommendations.
+## Objective
+Develop and maintain a full-stack application that performs real website SEO audits and displays actionable results.
 
 ## Technology Stack
-
-- Frontend: React, TypeScript, Vite
-- Backend: Python, FastAPI
-- Database: SQLite for the standalone FastAPI backend
-- Testing: Pytest and frontend tests
+- React and TypeScript
+- Vite
+- Tailwind CSS
+- Python and FastAPI
+- SQLite
+- REST APIs
 
 ## Development Guidelines
+1. Maintain separation between frontend and backend.
+2. Follow the existing project structure.
+3. Use reusable React components.
+4. Use TypeScript types for API responses.
+5. Validate website URLs before processing.
+6. Handle API errors properly.
+7. Do not replace real SEO results with mock data.
+8. Keep the audit workflow accessible without mandatory registration.
+9. Avoid exposing private audit data.
+10. Test functionality after making changes.
 
-1. Preserve the existing UI design and working functionality.
-2. Use real backend data instead of hardcoded demo values.
-3. Display the authenticated user's actual name.
-4. Implement functional SEO audits using real website data.
-5. Evaluate titles, meta descriptions, headings, image alt text, and internal links.
-6. Report broken internal links with their source pages and HTTP status codes.
-7. Generate actionable recommendations from actual audit findings.
-8. Handle errors, loading states, and unavailable services correctly.
-9. Never fabricate audit results, test outcomes, or AI responses.
-10. Prioritize correctness, security, and maintainable code.
+## Important API Endpoints
+- POST `/api/v1/audits` — Create audit
+- GET `/api/v1/audits/{id}` — Retrieve audit results
 
-## Required Deliverables
+## Main Development Goal
+Ensure the complete workflow operates correctly:
 
-Maintain the following files:
+Website URL → SEO Analysis → Score Calculation → Recommendations → Results Dashboard
 
-- `README.md` — Setup, execution, testing, and architecture.
-- `RESULTS.md` — Selected website, reason for selection, and actual SEO findings.
-- `DECISIONS.md` — Assumptions, ambiguities, resolutions, and three decisions to revisit. Maximum one page.
-- `AI_USAGE.md` — AI tools used, two genuine AI mistakes, independent verification, and future improvements. Maximum one page.
+## Security
+- Validate and restrict URLs to prevent SSRF.
+- Apply rate limits to public audit requests.
+- Avoid exposing API keys or credentials.
+- Protect private user data.
 
-## Testing and Verification
-
-Before submitting:
-
-1. Run backend automated tests.
-2. Run frontend tests and production build.
-3. Verify registration and login.
-4. Verify website auditing and report generation.
-5. Confirm that audit results come from actual analysis.
-6. Verify broken-link detection where supported.
-7. Check that documentation matches the implemented functionality.
-
-## GitHub Rules
-
-- Preserve published commit history.
-- Use normal commits and pushes.
-- Never commit `.env`, `.venv`, database credentials, or API keys.
-- Keep the repository functional after each push.
-- Do not claim completion when critical functionality remains unfinished.
-
-## Priority
-
-Complete the assignment's required functionality first. Avoid unnecessary features, excessive refactoring, and unverified changes.
+## Testing
+Verify frontend integration, backend API responses, audit persistence, and error handling before deployment.
