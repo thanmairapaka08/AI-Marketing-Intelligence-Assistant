@@ -1,133 +1,264 @@
 # AI Marketing Intelligence Assistant
 
-One repository for the full product: a React + TypeScript + Vite frontend and a
-FastAPI backend. The backend lives in `backend/` so the frontend and backend
-ship together from a single clone.
+**A Full-Stack SEO Auditing and Marketing Intelligence Platform**
 
-The app helps marketers audit a website's technical SEO, track scores over time,
-benchmark against competitors, and act on prioritised AI recommendations.
+AI Marketing Intelligence Assistant is a full-stack web application designed to help marketers, businesses, and website owners analyze technical SEO performance, identify optimization opportunities, monitor website health, and compare competitors.
 
-## Tech Stack
+The application combines a modern React dashboard with a Python FastAPI backend to deliver website audits, weighted SEO scores, actionable recommendations, historical insights, and downloadable reports.
 
-- React 19 + TypeScript + Vite
-- Tailwind CSS v4, TanStack Router, TanStack Query
-- FastAPI + Uvicorn backend (Python 3.11+)
-- Vitest for frontend tests, pytest for backend tests
+## Key Features
 
-## Repository layout
+- **Secure Authentication:** User registration, login, logout, and session management using HttpOnly cookies.
+- **Interactive Dashboard:** SEO statistics, audit trends, recent activity, and website performance.
+- **Website Management:** Add and manage monitored websites.
+- **SEO Auditing:** Analyze publicly accessible websites using five weighted SEO metrics.
+- **Audit History:** View previous audits and their results.
+- **Competitor Analysis:** Compare SEO performance across websites.
+- **SEO Recommendations:** Receive prioritized, rule-based improvement suggestions.
+- **Report Generation:** Download audit results in PDF, CSV, and JSON formats.
+- **User Settings:** Manage profile information and interface preferences.
 
+## Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React 19, TypeScript, Vite |
+| Styling | Tailwind CSS v4, shadcn/ui |
+| Routing | TanStack Router |
+| State Management | TanStack Query |
+| Backend | Python, FastAPI, Uvicorn |
+| Database | SQLite, SQLAlchemy 2.0 |
+| Authentication | HttpOnly session cookies |
+| SEO Analysis | Python HTMLParser, custom crawler |
+| Testing | Pytest, Vitest |
+| Version Control | Git, GitHub |
+
+## System Architecture
+
+```text
+                     USER
+                      |
+                      v
+              React Frontend
+           (TypeScript + Vite)
+                      |
+                      v
+              REST API Requests
+                      |
+                      v
+               FastAPI Backend
+                      |
+          +-----------+-----------+
+          |           |           |
+          v           v           v
+     Authentication  SEO Audit   Reports
+          |           |           |
+          +-----------+-----------+
+                      |
+                      v
+                SQLite Database
 ```
-.
-├── backend/                 # FastAPI app (see backend/README.md)
-│   ├── app/
-│   ├── tests/
-│   ├── requirements.txt
-│   └── .env.example
-├── src/                     # Frontend source
-│   ├── routes/              # TanStack file-based routes
-│   ├── services/            # Axios client + per-domain service modules
-│   ├── features/            # auth, dashboard, audits, recommendations, landing
-│   ├── components/          # layout, common, charts, shadcn ui
-│   └── test/                # vitest setup + routing test
-├── public/
-├── package.json
-├── vite.config.ts
-└── README.md
+
+The React frontend communicates with FastAPI through REST endpoints. The backend manages authentication, website analysis, SEO scoring, recommendations, and report generation. SQLite provides persistent storage for application records.
+
+## SEO Audit Methodology
+
+The application evaluates five technical SEO metrics using a weighted scoring system.
+
+| SEO Metric | Weight | Analysis |
+|---|---:|---|
+| Title and Meta Description | 25% | Presence and recommended length |
+| Broken Internal Links | 25% | HTTP errors and inaccessible internal links |
+| Image Alt Text | 15% | Alternative text coverage |
+| Heading Structure | 20% | H1 presence and heading hierarchy |
+| Canonical Tags | 15% | Canonical URL presence and consistency |
+| **Total** | **100%** | **Weighted SEO Score** |
+
+The audit engine evaluates accessible HTML content and produces a score based on the configured metric rules.
+
+Broken-link findings should include the affected URL, source page, and HTTP status where available. Network failures and timeouts are tracked separately from confirmed HTTP errors.
+
+## Project Structure
+
+```text
+AI-Marketing-Intelligence-Assistant-Frontend/
+|
+|-- backend/
+|   |-- app/
+|   |   |-- main.py
+|   |   |-- routers/
+|   |   |-- services/
+|   |   |-- schemas.py
+|   |-- tests/
+|   |-- requirements.txt
+|   |-- .env.example
+|
+|-- src/
+|   |-- routes/
+|   |-- features/
+|   |-- services/
+|   |-- components/
+|   |-- hooks/
+|   |-- test/
+|
+|-- public/
+|-- package.json
+|-- vite.config.ts
+|-- README.md
+|-- RESULTS.md
+|-- DECISIONS.md
+|-- AI_USAGE.md
 ```
 
-## Project Setup
+## Installation and Setup
 
 ### Prerequisites
 
-- Node.js 20+ and npm
-- Python 3.11+ (backend)
+- Node.js 20+
+- Python 3.11+ (Python 3.13 used during local development)
+- npm
+- Git
 
-### 1. Install frontend dependencies
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/thanmairapaka08/AI-Marketing-Intelligence-Assistant-Frontend.git
+cd AI-Marketing-Intelligence-Assistant-Frontend
+```
+
+### 2. Start the Backend
+
+Open Terminal 1 in the project directory.
+
+```powershell
+cd backend
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+```
+
+Backend URL: http://127.0.0.1:8000
+
+API Documentation: http://127.0.0.1:8000/docs
+
+Health Endpoint: http://127.0.0.1:8000/health
+
+### 3. Start the Frontend
+
+Open Terminal 2 in the project root directory.
 
 ```bash
 npm install
-```
-
-### 2. Install backend dependencies
-
-```bash
-cd backend
-python -m pip install -r requirements.txt
-```
-
-### 3. Configure environment
-
-Create `backend/.env` from `backend/.env.example` and, if you deviate from the
-defaults, set the frontend env in the repository root:
-
-```env
-# root .env
-VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
-```
-
-`VITE_API_BASE_URL` points the frontend at the backend. The frontend also reads
-`VITE_API_ROOT_URL` for `/health`, `/ready` and `/openapi.json`; it defaults to
-the API base URL with the `/api/v1` suffix stripped.
-
-### 4. Start the backend
-
-```bash
-cd backend
-python -m uvicorn app.main:app --reload
-```
-
-- API docs: http://127.0.0.1:8000/docs
-- Health: http://127.0.0.1:8000/health
-
-### 5. Start the frontend
-
-```bash
 npm run dev
 ```
 
-The dev server prints its own URL (default `http://localhost:5173`). The backend
-CORS allow-list covers the common localhost ports; add your own via
-`FRONTEND_URL` in `backend/.env`.
+Frontend URL: http://localhost:8080
 
-## Testing
+Use the actual URL displayed by Vite if a different port is assigned.
 
-Frontend tests:
+### 4. Environment Configuration
+
+Create `backend/.env` using `backend/.env.example` as the reference.
+
+Example frontend environment configuration:
+
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+```
+
+The backend must allow the frontend origin through its CORS configuration.
+
+Never commit actual credentials or API keys.
+
+## Running Automated Tests
+
+### Backend Tests
+
+From the `backend/` directory:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+### Frontend Tests
+
+From the project root:
 
 ```bash
 npm run test
 ```
 
-Backend tests:
-
-```bash
-cd backend
-python -m pytest -q
-```
-
-Production build:
+### Production Build
 
 ```bash
 npm run build
 ```
 
-## Backend Integration
+## Verification Results
 
-The frontend talks to the FastAPI API over `/api/v1` with HttpOnly session
-cookies (`withCredentials`). On a 401 it attempts one refresh then retries the
-original request once. Every error is normalised to an `ApiError` with a `kind`
-(`network`, `timeout`, `unauthorized`, `forbidden`, `not_found`, `unavailable`,
-`validation`, `server`, `unknown`) so the UI can explain what happened instead
-of showing zeros.
+The following results were reported during development:
 
-## Project Status
+| Verification | Result |
+|---|---|
+| Backend automated tests | 9 passed |
+| Frontend automated tests | 1 passed |
+| Frontend production build | Successful |
+| GitHub push | Reported successful |
 
-Frontend pages and automated tests are implemented. The backend audit, auth,
-dashboard, competitor and recommendation endpoints are implemented and covered
-by a 9-test pytest suite. End-to-end integration was verified against a running
-backend on 2026-11-19 — see RESULTS.md.
+These results represent the recorded development verification. See `RESULTS.md` for website-specific SEO findings.
 
-## Purpose
+## Application Workflow
 
-Developed as part of a technical assessment to demonstrate full-stack product
-development: modern frontend architecture, REST API integration, SEO analytics
-visualisation, and AI-assisted website optimisation.
+1. Register a new account or log in.
+2. Open the dashboard.
+3. Enter a publicly accessible website URL.
+4. Start a new SEO audit.
+5. Review the overall SEO score and metric-level findings.
+6. Examine recommendations and identified issues.
+7. Access previous audits through Audit History.
+8. Compare website performance with competitors.
+9. Download available reports.
+
+## Design Decisions
+
+The application uses a single-repository architecture for simplified development and evaluation.
+
+The initial development process prioritized functional frontend-backend integration, measurable SEO analysis, and automated testing.
+
+For architectural assumptions, implementation tradeoffs, and future improvements, see `DECISIONS.md`.
+
+## Limitations and Future Improvements
+
+- Extend the crawler to support configurable multi-page website analysis.
+- Improve broken-link detection across larger websites.
+- Integrate an external LLM for contextual recommendations.
+- Expand automated browser-based end-to-end testing.
+- Add scheduled audits, alerts, and advanced performance analytics.
+- Strengthen production authentication and deployment security.
+
+## Assessment Deliverables
+
+This repository contains the required submission materials:
+
+| File | Purpose |
+|---|---|
+| `README.md` | Project overview, architecture, setup, and testing |
+| `RESULTS.md` | Selected website and actual SEO analysis results |
+| `DECISIONS.md` | Assumptions, ambiguities, and architectural decisions |
+| `AI_USAGE.md` | AI assistance disclosure, mistakes, verification, and improvements |
+
+## AI Assistance
+
+Development was assisted by Lovable, Google Antigravity, Claude Code, and ChatGPT.
+
+AI-generated code and suggestions were reviewed through manual inspection, debugging, and automated testing. Specific examples are documented in `AI_USAGE.md`.
+
+## Repository
+
+**GitHub:** https://github.com/thanmairapaka08/AI-Marketing-Intelligence-Assistant-Frontend
+
+## Conclusion
+
+AI Marketing Intelligence Assistant demonstrates full-stack application development, REST API integration, technical SEO analysis, user authentication, database management, automated testing, and AI-assisted engineering.
+
+The project provides a foundation for a more comprehensive marketing intelligence platform with advanced crawling, intelligent recommendations, and continuous SEO monitoring.
