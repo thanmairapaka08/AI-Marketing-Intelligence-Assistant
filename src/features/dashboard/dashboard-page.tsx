@@ -13,7 +13,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuditsTable } from "@/features/audits/audits-table";
 import { QuickAuditForm } from "@/features/audits/quick-audit-form";
-import { displayName, useAuth } from "@/features/auth/auth-context";
 import { RecommendationCard } from "@/features/recommendations/recommendation-card";
 import { formatDate, formatNumber, formatScore } from "@/utils/format";
 import { getDomain } from "@/utils/url";
@@ -21,14 +20,13 @@ import { getDomain } from "@/utils/url";
 import { useDashboardSummary } from "./hooks";
 
 export function DashboardPage() {
-  const { user, status } = useAuth();
   const { data, isPending, error, refetch } = useDashboardSummary();
   const isNewUser = !!data && (data.total_audits ?? 0) === 0 && (data.recent_audits?.length ?? 0) === 0;
 
   return (
     <div className="space-y-6 animate-fade-up">
       <PageHeader
-        title={status === "preview" ? "Dashboard" : `Welcome back, ${displayName(user).split(" ")[0]}`}
+        title="Dashboard"
         description="Your websites, audits and SEO performance at a glance."
         actions={
           <Button asChild>

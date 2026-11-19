@@ -15,4 +15,9 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    // Bind to 127.0.0.1 (not localhost) so cookies work with backend on 127.0.0.1:8000
+    // Use port 5173 to avoid conflicts
+    server: { host: "127.0.0.1", port: 5173, strictPort: true },
+  },
 });

@@ -1,12 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Globe, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/page-header";
 import { ScoreBadge } from "@/components/common/badges";
 import { ScoreGauge } from "@/components/common/score-gauge";
-import { useAuth } from "@/features/auth/auth-context";
+import { competitorsService, type CompareInput } from "@/services/competitors.service";
+import { useWebsites } from "@/features/websites/hooks";
 import { getDomain } from "@/utils/url";
 
 export const Route = createFileRoute("/_authenticated/competitors")({
@@ -22,40 +24,56 @@ export const Route = createFileRoute("/_authenticated/competitors")({
 });
 
 function CompetitorsPage() {
-  const { user } = useAuth();
-  const isPending = false;
+  const { data: websites, isPending: websitesPending } = useWebsites();
+  const navigate = useNavigate();
+  const [primaryWebsiteId, setPrimaryWebsiteId] = useState("");
+  const [competitorUrls, setCompetitorUrls] = useState<string[]>(["", "", ""]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Demo data for initial implementation
-  const primarySite = {
-    url: "https://example.com",
-    is_primary: true,
-    overall_score: 88,
-    status: "completed",
-    metrics: {
-      title_meta: 90,
-      broken_links: 100,
-      image_alt: 85,
-      headings: 95,
-      canonical: 100,
-    },
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!primaryWebsiteId) {
+      setError("Please select a primary website");
+      return;
+    }
+    const validCompetitors = competitorUrls.filter(u => u.trim());
+    if (validCompetitors.length === 0) {
+      setError("Please enter at least one competitor URL");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const input: CompareInput = {
+        website_id: primaryWebsiteId,
+        competitor_urls: validCompetitors,
+      };
+      const data = await competitorsService.compare(input);
+      setResult(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to compare competitors");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const competitors = [
-    {
-      url: "https://competitor-alpha.com",
-      is_primary: false,
-      overall_score: 72,
-      status: "completed",
-      metrics: { title_meta: 70, broken_links: 80, image_alt: 65, headings: 75, canonical: 60 },
-    },
-    {
-      url: "https://competitor-beta.com",
-      is_primary: false,
-      overall_score: 78,
-      status: "completed",
-      metrics: { title_meta: 75, broken_links: 85, image_alt: 70, headings: 80, canonical: 72 },
-    },
-  ];
+  if (websitesPending) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Competitor Analysis" description="Benchmark technical SEO against up to three competitors." />
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-32 rounded bg-muted animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -67,19 +85,33 @@ function CompetitorsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Compare your sites</CardTitle>
-          <CardDescription>Enter up to 3 competitor URLs to compare against your primary site.</CardDescription>
+          <CardDescription>Select your primary site and enter up to 3 competitor URLs to compare.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-sm font-medium">Primary site</label>
-              <p className="text-muted-foreground">{getDomain(primarySite.url)}</p>
+              <select
+                value={primaryWebsiteId}
+                onChange={(e) => setPrimaryWebsiteId(e.target.value)}
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                required
+              >
+                <option value="">Select a website...</option>
+                {websites?.items?.map((site) => (
+                  <option key={site.id} value={site.id}>
+                    {site.name ?? getDomain(site.url)} ({getDomain(site.url)})
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="text-sm font-medium">Competitor 1</label>
               <input
                 type="url"
                 placeholder="https://competitor.com"
+                value={competitorUrls[0]}
+                onChange={(e) => setCompetitorUrls(prev => { const n = [...prev]; n[0] = e.target.value; return n; })}
                 className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
             </div>
@@ -88,6 +120,8 @@ function CompetitorsPage() {
               <input
                 type="url"
                 placeholder="https://competitor2.com"
+                value={competitorUrls[1]}
+                onChange={(e) => setCompetitorUrls(prev => { const n = [...prev]; n[1] = e.target.value; return n; })}
                 className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
             </div>
@@ -96,23 +130,27 @@ function CompetitorsPage() {
               <input
                 type="url"
                 placeholder="https://competitor3.com"
+                value={competitorUrls[2]}
+                onChange={(e) => setCompetitorUrls(prev => { const n = [...prev]; n[2] = e.target.value; return n; })}
                 className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
             </div>
-            <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+            {error && <p className="text-sm text-danger">{error}</p>}
+            <Button type="submit" disabled={isLoading || !websites?.items?.length}>
+              {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}
               Compare Sites
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <ComparisonCard site={primarySite} title="Your Site" />
-        {competitors.map((comp, i) => (
-          <ComparisonCard key={i} site={comp} title={`Competitor ${i + 1}`} />
-        ))}
-      </div>
+      {result && (
+        <div className="grid gap-6 lg:grid-cols-4">
+          {result.sites.map((site: any, i: number) => (
+            <ComparisonCard key={i} site={site} title={site.is_primary ? "Your Site" : `Competitor ${i}`} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -129,7 +167,7 @@ function ComparisonCard({ site, title }: { site: any; title: string }) {
         </div>
         <p className="text-center text-sm font-medium mb-2">{site.overall_score}/100</p>
         <div className="space-y-3">
-          {Object.entries(site.metrics).map(([key, value]) => (
+          {Object.entries(site.metrics || {}).map(([key, value]) => (
             <div key={key} className="flex justify-between text-sm">
               <span className="text-muted-foreground capitalize">{key.replace("_", " ")}</span>
               <ScoreBadge score={value} />

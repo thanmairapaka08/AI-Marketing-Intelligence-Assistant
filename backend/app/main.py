@@ -29,11 +29,7 @@ app = FastAPI(
 # Development origins the frontend may be served from. FRONTEND_URL from the
 # environment (see backend/.env.example) can add extra origins at deploy time.
 _ALLOWED_ORIGINS = [
-    "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8080",
     "http://127.0.0.1:8080",
 ]
 

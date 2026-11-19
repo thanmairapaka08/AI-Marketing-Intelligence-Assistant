@@ -1,9 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Bot, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PriorityBadge } from "@/components/common/badges";
+import { useAudits } from "@/features/audits/hooks";
+import { formatDate } from "@/utils/format";
+import { getDomain } from "@/utils/url";
 
 export const Route = createFileRoute("/_authenticated/recommendations")({
   head: () => ({
@@ -18,41 +22,18 @@ export const Route = createFileRoute("/_authenticated/recommendations")({
 });
 
 function RecommendationsPage() {
-  const isPending = false;
+  const { data, isPending } = useAudits();
 
-  // Demo recommendations from completed audit
-  const recommendations = [
-    {
-      id: 1,
-      title: "Shorten Homepage Meta Description",
-      description: "Your meta description is 165 characters long. Search engines cut off snippets after ~160 characters.",
-      priority: "medium",
-      expected_impact: "Prevents truncation in search engine result pages",
-      estimated_effort: "Low (5 mins)",
-      category: "Meta & Content",
-      metric: "title_meta",
-    },
-    {
-      id: 2,
-      title: "Add Alt Attribute to Hero Header Graphic",
-      description: "1 image is currently unlabelled, reducing accessibility score and image search visibility.",
-      priority: "medium",
-      expected_impact: "WCAG compliance and image pack discovery",
-      estimated_effort: "Low (5 mins)",
-      category: "Accessibility & Media",
-      metric: "image_alt",
-    },
-    {
-      id: 3,
-      title: "Optimize Title for Length",
-      description: "Title is 65 characters. Optimal is 30-60 for featured snippet visibility.",
-      priority: "low",
-      expected_impact: "Better visibility in Google search results",
-      estimated_effort: "5 mins",
-      category: "Meta & Content",
-      metric: "title_meta",
-    },
-  ];
+  // Collect all recommendations from all audits
+  const allRecommendations = data?.items?.flatMap((audit) =>
+    (audit.recommendations || []).map((rec: any) => ({
+      ...rec,
+      audit_id: audit.id,
+      audit_url: audit.url,
+      audit_domain: audit.domain,
+      audit_date: audit.completed_at || audit.created_at,
+    }))
+  ) || [];
 
   return (
     <div className="space-y-6">
@@ -67,12 +48,15 @@ function RecommendationsPage() {
             <div key={i} className="h-32 rounded bg-muted animate-pulse" />
           ))}
         </div>
-      ) : recommendations && recommendations.length > 0 ? (
+      ) : allRecommendations && allRecommendations.length > 0 ? (
         <div className="space-y-4">
-          {recommendations.map((rec) => (
-            <Card key={rec.id}>
+          {allRecommendations.map((rec) => (
+            <Card key={rec.id ?? rec.audit_id}>
               <CardHeader>
-                <CardTitle className="text-base">{rec.title}</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">{rec.title}</CardTitle>
+                  <PriorityBadge priority={rec.priority} />
+                </div>
                 <CardDescription>{rec.description}</CardDescription>
               </CardHeader>
               <CardContent>
@@ -83,13 +67,24 @@ function RecommendationsPage() {
                   </div>
                   <div>
                     <span className="font-medium text-muted-foreground">Impact: </span>
-                    {rec.expected_impact}
+                    {rec.expected_impact ?? rec.impact}
                   </div>
                   <div>
                     <span className="font-medium text-muted-foreground">Effort: </span>
-                    {rec.estimated_effort}
+                    {rec.estimated_effort ?? rec.effort}
+                  </div>
+                  <div>
+                    <span className="font-medium text-muted-foreground">From: </span>
+                    {rec.audit_domain ?? getDomain(rec.audit_url)} ({formatDate(rec.audit_date)})
                   </div>
                 </div>
+                {rec.steps && rec.steps.length > 0 && (
+                  <ol className="mt-3 list-decimal list-inside text-sm text-muted-foreground space-y-1">
+                    {rec.steps.slice(0, 3).map((step: string, i: number) => (
+                      <li key={i}>{step}</li>
+                    ))}
+                  </ol>
+                )}
               </CardContent>
             </Card>
           ))}

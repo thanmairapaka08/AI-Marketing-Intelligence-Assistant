@@ -16,7 +16,6 @@ import {
 
 import { Logo } from "@/components/common/logo";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/features/auth/auth-context";
 import { DashboardPreview } from "@/features/landing/dashboard-preview";
 import { PublicNav } from "@/features/landing/public-nav";
 
@@ -63,9 +62,6 @@ const BENEFITS = [
 ];
 
 function LandingPage() {
-  const { status } = useAuth();
-  const signedIn = status === "authenticated" || status === "preview";
-
   return (
     <div className="min-h-screen bg-background">
       <PublicNav />
@@ -86,7 +82,7 @@ function LandingPage() {
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link to={signedIn ? "/audit" : "/register"}>
+              <Link to="/audit">
                 Analyze Your Website <ArrowRight />
               </Link>
             </Button>
@@ -145,8 +141,8 @@ function LandingPage() {
               Every number comes straight from the crawl. When something can't be measured, we say so instead of guessing.
             </p>
             <Button asChild className="mt-6">
-              <Link to={signedIn ? "/dashboard" : "/register"}>
-                {signedIn ? "Go to dashboard" : "Create a free account"} <ArrowRight />
+              <Link to="/dashboard">
+                Go to dashboard <ArrowRight />
               </Link>
             </Button>
           </div>
@@ -166,10 +162,6 @@ function LandingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6">
           <Logo />
           <p>© {new Date().getFullYear()} AI Marketing Intelligence Assistant. Technical SEO insights.</p>
-          <div className="flex gap-5">
-            <Link to="/login" search={{}} className="hover:text-foreground">Sign in</Link>
-            <Link to="/register" className="hover:text-foreground">Register</Link>
-          </div>
         </div>
       </footer>
     </div>

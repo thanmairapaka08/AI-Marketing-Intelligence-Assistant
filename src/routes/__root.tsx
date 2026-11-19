@@ -11,7 +11,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "@/features/auth/auth-context";
 import { ThemeProvider, themeInitScript } from "@/hooks/use-theme";
 
 import appCss from "../styles.css?url";
@@ -131,11 +130,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-          <Toaster position="bottom-right" />
-        </AuthProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster position="bottom-right" />
       </ThemeProvider>
     </QueryClientProvider>
   );
