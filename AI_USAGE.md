@@ -1,41 +1,55 @@
 # AI Usage — AI Marketing Intelligence Assistant
 
-How AI assistance was used in this assessment submission.
+## 1. AI Tools Used
 
-## AI-assisted code generation (early phase)
+- **Lovable:** Generated the initial React frontend, UI components, and dashboard design.
+- **Google Antigravity:** Assisted with code editing, frontend-backend integration, debugging, and GitHub operations.
+- **Claude Code:** Helped implement missing pages, fix authentication issues, improve backend functionality, write tests, and update documentation.
+- **ChatGPT:** Provided troubleshooting guidance, development commands, project planning, and documentation review.
 
-The original frontend codebase was created with AI assistance, using a
-TanStack Start template as the foundation. This assessment was about **integration
-and submission**, not rebuilding the entire stack.
+## 2. Two Specific AI Mistakes
 
-## Verification, not invention
+**Mistake 1: Hardcoded Username**
 
-All code that was not originally generated was written or verified by me:
+The AI-generated dashboard displayed "Alex Mercer" instead of the authenticated user's name.
 
-- Back-end tests were run locally against the original code
-- CORS middleware was updated to include `127.0.0.1:8080`
-- Documentation was rewritten to remove template references (`screenshot-precision`,
-  `edit:`, `add your`, `todo`, etc.)
-- No AI was asked to create new features, fix bugs it did not discover, or simulate
-  results it did not observe
+- **Detection:** Manually checked the dashboard after starting the application.
+- **Correction:** Updated the frontend to display the logged-in user's actual name dynamically.
 
-## Actual test evidence
+**Mistake 2: Incomplete Pages**
 
-```
-# Backend - 2026-11-19
-python -m pytest -q
+Several AI-generated pages displayed "This page is still being built."
+
+- **Detection:** Manually navigated through Websites, Audit History, and Audit Report pages.
+- **Correction:** Implemented the missing interfaces and connected them to backend APIs.
+
+## 3. Independent Verification
+
+I manually started the frontend and backend, opened the application in my browser, checked page navigation, and identified incorrect user information and unfinished pages.
+
+## 4. Test Evidence
+
+Backend:
+```text
 9 passed, 1 warning in 1.29s
-
-# Frontend
-bun run test
-Test Files  1 passed (1)
-      Tests  1 passed (1)
 ```
 
-These results were captured during this session and recorded in `RESULTS.md`.
+Frontend:
+```text
+Test Files: 1 passed
+Tests: 1 passed
+```
 
-## Documentation approach
+These are recorded development test results, not a claim that every final feature has been verified.
 
-Documentation (`README.md`, `RESULTS.md`, `DECISIONS.md`, `roadmap.md`) was
-written to describe the actual state of the codebase on 2026-11-19, not to guess
-at what might be built in the future.
+## 5. Improvements With One More Day
+
+1. Implement multi-page website crawling.
+2. Improve broken-link detection and SEO scoring.
+3. Integrate Gemini for contextual AI recommendations.
+4. Expand automated and end-to-end testing.
+5. Improve reporting and application performance.
+
+## Conclusion
+
+Lovable, Antigravity, Claude Code, and ChatGPT accelerated development. Manual verification helped identify AI-generated mistakes and improve the application's reliability.
