@@ -36,5 +36,15 @@ dist-ssr
 .env.*
 !.env.example
 
+# Backend
+backend/.venv/
+backend/.env
+backend/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+
 # Test coverage
 coverage
+
+# bun lockfile (optional - can be committed if preferred)
+# bun.lock

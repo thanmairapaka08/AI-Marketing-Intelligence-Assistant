@@ -1,75 +1,110 @@
-# AI Marketing Intelligence Assistant — Frontend
+# AI Marketing Intelligence Assistant
 
-A modern, responsive React frontend for the AI Marketing Intelligence Assistant. The application helps users analyze websites, monitor SEO performance, compare competitors, and view AI-powered optimization recommendations.
+One repository for the full product: a React + TypeScript + Vite frontend and a
+FastAPI backend. The backend lives in `backend/` so the frontend and backend
+ship together from a single clone.
+
+The app helps marketers audit a website's technical SEO, track scores over time,
+benchmark against competitors, and act on prioritised AI recommendations.
 
 ## Tech Stack
 
-- React with TypeScript
-- Vite
-- Tailwind CSS
-- TanStack Router
-- TanStack Query
-- FastAPI backend integration
-- Vitest for frontend testing
+- React 19 + TypeScript + Vite
+- Tailwind CSS v4, TanStack Router, TanStack Query
+- FastAPI + Uvicorn backend (Python 3.11+)
+- Vitest for frontend tests, pytest for backend tests
 
-## Features
+## Repository layout
 
-- User registration and login
-- Interactive SEO dashboard
-- Website auditing and SEO scoring
-- Five weighted SEO metrics
-- AI-powered SEO recommendations
-- Competitor analysis
-- Website management
-- Audit history and comparisons
-- PDF, CSV, and JSON report exports
-- Dark mode and responsive design
+```
+.
+├── backend/                 # FastAPI app (see backend/README.md)
+│   ├── app/
+│   ├── tests/
+│   ├── requirements.txt
+│   └── .env.example
+├── src/                     # Frontend source
+│   ├── routes/              # TanStack file-based routes
+│   ├── services/            # Axios client + per-domain service modules
+│   ├── features/            # auth, dashboard, audits, recommendations, landing
+│   ├── components/          # layout, common, charts, shadcn ui
+│   └── test/                # vitest setup + routing test
+├── public/
+├── package.json
+├── vite.config.ts
+└── README.md
+```
 
 ## Project Setup
 
-### 1. Prerequisites
+### Prerequisites
 
-- Node.js
-- npm
-- Running FastAPI backend
+- Node.js 20+ and npm
+- Python 3.11+ (backend)
 
-### 2. Install Dependencies
+### 1. Install frontend dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Configure Environment
+### 2. Install backend dependencies
 
-Create a `.env` file in the frontend root directory:
-
-```env
-VITE_API_URL=http://127.0.0.1:8000
+```bash
+cd backend
+python -m pip install -r requirements.txt
 ```
 
-Ensure the backend allows requests from the frontend development origin.
+### 3. Configure environment
 
-### 4. Start the Frontend
+Create `backend/.env` from `backend/.env.example` and, if you deviate from the
+defaults, set the frontend env in the repository root:
+
+```env
+# root .env
+VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+```
+
+`VITE_API_BASE_URL` points the frontend at the backend. The frontend also reads
+`VITE_API_ROOT_URL` for `/health`, `/ready` and `/openapi.json`; it defaults to
+the API base URL with the `/api/v1` suffix stripped.
+
+### 4. Start the backend
+
+```bash
+cd backend
+python -m uvicorn app.main:app --reload
+```
+
+- API docs: http://127.0.0.1:8000/docs
+- Health: http://127.0.0.1:8000/health
+
+### 5. Start the frontend
 
 ```bash
 npm run dev
 ```
 
-Open the local URL displayed in the terminal.
-
-Default development URL for the current configuration:
-
-http://localhost:8080
+The dev server prints its own URL (default `http://localhost:5173`). The backend
+CORS allow-list covers the common localhost ports; add your own via
+`FRONTEND_URL` in `backend/.env`.
 
 ## Testing
 
-Run frontend tests:
+Frontend tests:
 
 ```bash
 npm run test
 ```
 
-Create a production build:
+Backend tests:
+
+```bash
+cd backend
+python -m pytest -q
+```
+
+Production build:
 
 ```bash
 npm run build
@@ -77,38 +112,22 @@ npm run build
 
 ## Backend Integration
 
-The frontend communicates with the FastAPI backend for authentication, website analysis, SEO metrics, competitor comparisons, AI recommendations, and report generation.
-
-Backend development URL:
-
-http://127.0.0.1:8000
-
-API documentation:
-
-http://127.0.0.1:8000/docs
-
-The backend must be running for features requiring API access.
-
-## Project Structure
-
-```text
-screenshot-precision/
-├── src/
-│   ├── components/
-│   ├── routes/
-│   ├── services/
-│   ├── hooks/
-│   └── test/
-├── public/
-├── package.json
-├── vite.config.ts
-└── README.md
-```
+The frontend talks to the FastAPI API over `/api/v1` with HttpOnly session
+cookies (`withCredentials`). On a 401 it attempts one refresh then retries the
+original request once. Every error is normalised to an `ApiError` with a `kind`
+(`network`, `timeout`, `unauthorized`, `forbidden`, `not_found`, `unavailable`,
+`validation`, `server`, `unknown`) so the UI can explain what happened instead
+of showing zeros.
 
 ## Project Status
 
-Frontend pages and automated tests have been implemented. End-to-end integration with the backend should be verified before deployment.
+Frontend pages and automated tests are implemented. The backend audit, auth,
+dashboard, competitor and recommendation endpoints are implemented and covered
+by a 9-test pytest suite. End-to-end integration was verified against a running
+backend on 2026-11-19 — see RESULTS.md.
 
 ## Purpose
 
-Developed as part of a technical assessment to demonstrate modern frontend development, REST API integration, SEO analytics visualization, and AI-assisted website optimization.
+Developed as part of a technical assessment to demonstrate full-stack product
+development: modern frontend architecture, REST API integration, SEO analytics
+visualisation, and AI-assisted website optimisation.
