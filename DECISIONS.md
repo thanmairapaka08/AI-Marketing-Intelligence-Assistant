@@ -1,59 +1,53 @@
 # Decisions — AI Marketing Intelligence Assistant
 
-Architectural and implementation choices made during this assessment.
+## 1. Architectural Decisions
 
-## Repository structure
+**Single Repository:** The React frontend and FastAPI backend are maintained in one repository, with backend code inside `backend/`.
 
-**Decision:** Put the backend in `backend/` inside the frontend repository.
+**Reason:** Simplifies evaluation, setup, testing, and submission.
 
-**Why:** The evaluator requested one submission-ready repository using the frontend
-as the destination. This keeps git history clean in each source repo while shipping
-both halves together.
+**Frontend–Backend Communication:** REST APIs connect the React frontend to FastAPI. CORS origins are configurable using `FRONTEND_URL`.
 
-## CORS origins
+**Reason:** Supports local development and different deployment environments.
 
-**Decision:** Read `FRONTEND_URL` from the environment and merge into the allow-list.
+**Authentication:** User information is obtained from the authenticated session rather than hardcoded values.
 
-**Why:** Deployment environments may change the origin (e.g., custom domain, preview URL).
-Reading from environment means CI/CD can inject the value without code changes.
+**Reason:** Ensures each user sees their own account information.
 
-## In-memory store
+**Data Storage:** The initial backend used an in-memory store for rapid development. Persistent SQLite storage was subsequently prioritized.
 
-**Decision:** State is stored in an in-memory `InMemoryStore` with seeded demo data.
+**Reason:** In-memory storage simplifies prototyping, while persistence is needed to retain users and audit history. The final storage implementation must be verified.
 
-**Why:** This assessment focuses on full-stack integration, not persistence. A real
-product would use PostgreSQL or similar; the store interface could be replaced by
-implementing the same methods.
+## 2. Assumptions and Reasons
 
-## Offline preview (explore mode)
+1. **Public websites:** Audits target publicly accessible URLs because private websites require additional authentication.
+2. **SEO metrics:** Titles, descriptions, headings, image alt text, and internal links provide measurable indicators of basic SEO quality.
+3. **SEO scoring:** A deterministic scoring system is suitable because the assignment does not provide specific metric weights.
+4. **AI recommendations:** Rule-based suggestions are an acceptable fallback when an external AI service is unavailable.
+5. **User-specific data:** Audits and reports should be associated with the authenticated user to prevent mixing information between accounts.
 
-**Decision:** Frontend has `setOfflinePreview()` which short-circuits every request
-with a user-friendly error. Users can click "Explore without backend" on the login page.
+## 3. Unclear Requirements and Resolutions
 
-**Why:** During development or when the backend is unreachable, the UI still loads
-and shows meaningful empty states. This is a legitimate development mode, not a
-placeholder feature.
+| Unclear requirement | Resolution |
+|---|---|
+| Maximum crawling depth | Prioritize single-page analysis; extend crawling if required |
+| SEO scoring weights | Use documented, consistent scoring rules |
+| Required AI model | Use rule-based recommendations when no model is configured |
+| Database technology | Prefer a simple local database for development |
+| Report format | Support available export formats such as PDF, CSV, or JSON |
 
-## PageInProgress component
+## 4. Three Decisions to Revisit
 
-**Decision:** Pages not yet built render the `PageInProgress` component, which
-shows a header, construction icon, and placeholder message.
+1. **Website Crawling:** Expand from single-page analysis to configurable multi-page crawling with broken-link detection.
+2. **Database Architecture:** Evaluate PostgreSQL for production scalability and concurrent users.
+3. **AI Recommendations:** Integrate Gemini or another LLM for more contextual SEO recommendations.
 
-**Why:** This is intentional — these pages have routes and navigation configured,
-but their content components are not yet written. The routes work (auth, landing,
-dashboard, audit creation all work). The placeholder text "This page is not built yet"
-is honest about the current state.
+## 5. Engineering Priorities
 
-## Test design
+The project prioritizes functional integration, reliable SEO analysis, secure authentication, automated testing, and accurate reporting.
 
-**Decision:** Frontend test verifies route matching; backend test uses TestClient.
+The implementation avoids fabricated audit results and unnecessary complexity.
 
-**Why:** End-to-end browser testing requires running both servers. Route tests work
-in isolation. Backend TestClient exercises the full FastAPI stack without a live server.
+## Conclusion
 
-## No intentionally broken code
-
-**Decision:** All code runs correctly. No sabotage to "prove tests work."
-
-**Why:** The evaluator's remark about "broke the code on purpose" was criticism of a
-previous submission style. This code passes all tests without modification.
+These decisions balance development time, application functionality, and maintainability while identifying improvements for future development.
